@@ -1,0 +1,29 @@
+{
+  "name": "knowledge-index",
+  "fields": [
+    { "name": "id", "type": "Edm.String", "key": true },
+    { "name": "chunk", "type": "Edm.String", "searchable": true },
+    { "name": "type", "type": "Edm.String", "filterable": true },
+    {
+      "name": "embedding",
+      "type": "Collection(Edm.Single)",
+      "searchable": true,
+      "dimensions": 1536,
+      "vectorSearchProfile": "my-vector-profile"
+    }
+  ],
+  "vectorSearch": {
+    "profiles": [
+      {
+        "name": "my-vector-profile",
+        "algorithm": "my-vector-algorithm"
+      }
+    ],
+    "algorithms": [
+      {
+        "name": "my-vector-algorithm",
+        "kind": "hnsw"
+      }
+    ]
+  }
+}
