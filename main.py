@@ -43,11 +43,11 @@ async def ask(
         await files.seek(0)
         shutil.copyfileobj(files.file, tmp)
 
-# Конвертируем в WAV
-    audio_path = prepare_audio_for_recognition(tmp.name)
-    print(f"📁 Save temporary file : {audio_path}")
-    print("📦 Size file:", os.path.getsize(audio_path), "bite")
-    transcribe = speech_to_text(audio_path)
+        # Конвертируем в WAV
+        audio_path = prepare_audio_for_recognition(tmp.name)
+        print(f"📁 Save temporary file : {audio_path}")
+        print("📦 Size file:", os.path.getsize(audio_path), "bite")
+        transcribe = speech_to_text(audio_path)
 
     if not transcribe:
         print("❌ transcribe NO transcribe")
@@ -70,12 +70,6 @@ async def ask(
         "text": answer,
         "audio": audio_data_uri
     }])
-    # return JSONResponse({
-    #    "role": "ai",
-    #     "text": answer,
-    #     "audio": audio_data_uri,
-    #     "headers": {"Content-Disposition": "inline; filename=answer.mp3"}
-    # })
 
     # return Response(
     #     content=audio_output,
