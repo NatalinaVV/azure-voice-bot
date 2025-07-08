@@ -26,18 +26,18 @@ app.add_middleware(
 @app.post("/ask")
 async def ask(
     request: Request,
-    files: UploadFile = File(None),
-    messages: str = Form(None)
+    files: UploadFile = File(None)
 ):
     print("📥 ---------- New Req ---------- 📥")
+    content_type = request.headers.get("content-type", "")
     print(f"📨 Headers: {request.headers}")
     print(f"📨 Request: {request}")
     print(f"📎 File: {files if files else 'None'}")
-    print(f"💬 Messages: {messages}")
 
     transcribe = None
+    query_text = None
 
-    # Если пришёл файл — обрабатываем
+    # if audio
     if files:
       with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
         await files.seek(0)
@@ -48,12 +48,18 @@ async def ask(
         print(f"📁 Save temporary file : {audio_path}")
         print("📦 Size file:", os.path.getsize(audio_path), "bite")
         transcribe = speech_to_text(audio_path)
+        query_text = transcribe
 
-    if not transcribe:
-        print("❌ transcribe NO transcribe")
+    #if text
+    if not query_text and "application/json" in content_type:
+        body = await request.json()
+        print(f"💬 JSON Body: {body}")
+        if "messages" in body:
+            query_text = body["messages"][-1]["text"]
+
+    if not query_text:
+        print("❌ No input provided")
         return {"error": "No input provided."}
-    
-    query_text = transcribe or messages
 
     print(f"🧠 transcribe in RAG: {query_text}")
     answer = run_rag_pipeline(query_text)
