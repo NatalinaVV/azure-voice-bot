@@ -68,7 +68,7 @@ load_dotenv(dotenv_path=env_path)
 # 🔐 Создаём клиент OpenAI
 client = AzureOpenAI(
     api_key=os.getenv("AZURE_OPENAI_KEY_NEW"),
-    api_version="2024-02-15-preview",
+    api_version="2023-05-15",
     azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT_NEW")
 )
 

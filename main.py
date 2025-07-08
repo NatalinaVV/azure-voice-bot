@@ -1,6 +1,7 @@
+import base64
 from fastapi import FastAPI, UploadFile, File, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 import tempfile
 import uvicorn
 import shutil
@@ -61,12 +62,27 @@ async def ask(
     audio_output = text_to_speech(answer)
     print("🔊 Responce text_to_speech")
 
-    return Response(
-        content=audio_output,
-        # content={"role": "ai", "text": "Message from bob"},
-        media_type="audio/mpeg",
-        headers={"Content-Disposition": "inline; filename=answer.mp3"}
-    )
+    audio_base64 = base64.b64encode(audio_output).decode("utf-8")
+    audio_data_uri = f"data:audio/mpeg;base64,{audio_base64}"
+
+    return JSONResponse([{
+        "role": "ai",
+        "text": answer,
+        "audio": audio_data_uri
+    }])
+    # return JSONResponse({
+    #    "role": "ai",
+    #     "text": answer,
+    #     "audio": audio_data_uri,
+    #     "headers": {"Content-Disposition": "inline; filename=answer.mp3"}
+    # })
+
+    # return Response(
+    #     content=audio_output,
+    #     # content={"role": "ai", "text": "Message from bob"},
+    #     media_type="audio/mpeg",
+    #     headers={"Content-Disposition": "inline; filename=answer.mp3"}
+    # )
 
 
 if __name__ == "__main__":
