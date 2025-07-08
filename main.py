@@ -12,6 +12,7 @@ from services.rag.rag import run_rag_pipeline
 from services.rag.synthesize import text_to_speech
 from utils.save_file import save_upload_file
 from utils.prepare_audio_for_recognition import prepare_audio_for_recognition
+from utils.language_utils import detect_language, translate_back, translate_to_english
 
 app = FastAPI(title="VoiceBot RAG")
 
@@ -60,12 +61,18 @@ async def ask(
     if not query_text:
         print("❌ No input provided")
         return {"error": "No input provided."}
+    
+  # Multilingual processing
+    user_lang = detect_language(query_text)
+    query_en = translate_to_english(query_text, user_lang) if user_lang != "en" else query_text
+    print(f"🔤 Detected: {user_lang}, translated: {query_en}")
 
-    print(f"🧠 transcribe in RAG: {query_text}")
-    answer = run_rag_pipeline(query_text)
-    print(f"✅ answer: {answer}")
-
-    audio_output = text_to_speech(answer)
+    print(f"🧠 transcribe in RAG: {query_en}")
+    answer_en = run_rag_pipeline(query_en)
+    print(f"✅ answer: {answer_en}")
+    
+    final_answer = translate_back(answer_en, user_lang) if user_lang != "en" else answer_en
+    audio_output = text_to_speech(final_answer, user_lang=user_lang)
     print("🔊 Responce text_to_speech")
 
     audio_base64 = base64.b64encode(audio_output).decode("utf-8")
@@ -73,17 +80,9 @@ async def ask(
 
     return JSONResponse([{
         "role": "ai",
-        "text": answer,
+        "text": final_answer,
         "audio": audio_data_uri
     }])
-
-    # return Response(
-    #     content=audio_output,
-    #     # content={"role": "ai", "text": "Message from bob"},
-    #     media_type="audio/mpeg",
-    #     headers={"Content-Disposition": "inline; filename=answer.mp3"}
-    # )
-
 
 if __name__ == "__main__":
     uvicorn.run("main:app", port=8000, reload=True)
